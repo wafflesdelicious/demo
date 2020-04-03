@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="../node_modules/element-ui/lib/theme-chalk/index.css">
+</head>
+
+<body>
+    <div id="app">
+        <el-button type="primary" @click="GetCode" :disabled="!BtnStatus">
+            {{BtnStatus?'获取验证码':`${countDownTime}秒后获取`}}
+        </el-button>
+        <el-button type="primary" @click="getCode" :disabled="!isDisabled">
+            {{isDisabled?'获取验证码':`${remainTime}秒后获取`}}
+        </el-button>
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script src="../node_modules/element-ui/lib/index.js"></script>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                BtnStatus: true,
+                countDownTime: '',
+                remainTime: '',
+                isDisabled: true
+            },
+            methods: {
+                created() {
+                    this.getUserList()
+                    // const myEndTime = Getitem('myEndTime')
+                    const myEndTime = localStorage.getItem('myEndTime')
+                    myEndTime && this.codeCountDown(myEndTime)
+                    this.remainTime = localStorage.getItem('endTime')
+                    var countTime = setInterval(() => {
+                        this.isDisabled = false
+                        if (this.remainTime > 0) {
+                            this.remainTime--
+                            localStorage.setItem('endTime', this.remainTime)
+                        } else {
+                            clearInterval(countTime)
+                            this.isDisabled = true
+                            localStorage.removeItem('endTime')
+                        }
+                    }, 1000)
+                },
+                GetCode() {
+                    const endMsRes = new Date().getTime() + 10000
+                    localStorage.setItem('myEndTime', JSON.stringify(endMsRes))
+                    this.codeCountDown(endMsRes)
+                },
+                codeCountDown(endMsRes) {
+                    this.BtnStatus = false
+                    this.countDownTime = Math.ceil((endMsRes - new Date().getTime()) / 1000)
+                    const time = setTimeout(() => {
+                        this.countDownTime--
+                        if (this.countDownTime < 1) {
+                            this.BtnStatus = true
+                            this.countDownTime = 60
+                            localStorage.removeItem('myEndTime')
+                            clearTimeout(time)
+                        } else {
+                            this.codeCountDown(endMsRes)
+                        }
+                    }, 1000)
+                },
+                getCode() {
+                    var endTime = 10
+                    localStorage.setItem('endTime', endTime)
+                    this.isDisabled = false
+
+                    this.remainTime = localStorage.getItem('endTime')
+                    var countTime = setInterval(() => {
+                        if (this.remainTime > 1) {
+                            console.log(this.remainTime)
+                            this.remainTime--
+                            localStorage.setItem('endTime', this.remainTime)
+                        } else {
+                            clearInterval(countTime)
+                            this.isDisabled = true
+                            localStorage.removeItem('endTime')
+                        }
+                    }, 1000)
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
